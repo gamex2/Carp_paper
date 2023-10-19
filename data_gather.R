@@ -1,0 +1,53 @@
+source(here::here('packages.R'))
+source(here::here('functions.R'))
+
+#Data from the database#####
+con <- dbConnect(PostgreSQL(), dbname = "fishecu_complex-survey_db", user = "fishecuuser", host = "172.21.3.20", password = "f1sh3cuus3r!")
+
+#Connecting to the database to extract info about Lipno
+#Latin names
+# specs <- data.table(dbGetQuery(conn = con, statement =  "SELECT * FROM fishecu.species;"))#to see the whole table (reservoir). Important to see the reservoir ID number.
+# specs <- specs[,c(1,2,10)]
+# write.xlsx(specs, here::here('Data', 'specs.xlsx'))
+specs <- setDT(readxl::read_xlsx(here::here('Data', 'specs.xlsx')))
+
+# Gillnet deployments####
+# all_gill_depl <- data.table(dbGetQuery(conn = con, statement = "SELECT *
+# FROM fishecu.gillnet_sampling_merged_wide
+# WHERE reservoirid IN (2);"))
+# write.xlsx(all_gill_depl, here::here('Data', 'all_gill_depl.xlsx'))
+all_gill_depl <- setDT(readxl::read_xlsx(here::here('Data', 'all_gill_depl.xlsx')))
+
+#Vilém's function renaming
+setnames(x = all_gill_depl,old = 'gearsize', new = 'Effort')#changing the name of releffortm to Effort to allow the function to run
+all_gill_depl[, year := year(date_start)]
+
+#Catches ####
+# catches_db <- data.table(dbGetQuery(conn = con, statement = paste("SELECT * FROM fishecu.catch_merged
+#                                                                   WHERE  sa_samplingid IN ('",paste(all_gill_depl$sa_samplingid, collapse = "','"), "')
+#                                                                   ;", sep = "")))
+# write.xlsx(catches_db, here::here('Data', 'catches_db.xlsx'))
+catches_db <- setDT(readxl::read_xlsx(here::here('Data', 'catches_db.xlsx')))
+
+#separating the target species
+catches_db <- merge(catches_db, specs[, .(sp_speciesid, sp_scientificname, sp_taxonomicorder)], by='sp_speciesid')
+catches_db <- catches_db[!sp_speciesid == 'EA']
+catches_db <- catches_db[sp_scientificname == "Cyprinus carpio"]
+catches_db <- merge(catches_db, all_gill_depl[, .(sa_samplingid, year)], by='sa_samplingid')
+
+#Vpue
+splitfactors <- c("sa_samplingid", "gg_gearid", "depthlayerid", "dl_layertype")
+cpue_carp <- getVPUE(samplings = all_gill_depl, catch = catches_db, split.factors.catch = c("sp_scientificname"), 
+                split.factors.samplings = splitfactors, value.var = "ct_abundancestar", 
+                effort.colname = "Effort", id.colname = "sa_samplingid")
+bpue_carp <- getVPUE(samplings = all_gill_depl, catch = catches_db, split.factors.catch = c("sp_scientificname"), 
+                split.factors.samplings = splitfactors, value.var = "ct_weightstar", 
+                effort.colname = "Effort", id.colname = "sa_samplingid")
+
+vpue_carp <- merge(cpue_carp, bpue_carp, by = c("sa_samplingid", "gg_gearid", "depthlayerid", "dl_layertype"))
+
+#changing the name of variables
+setnames(x = vpue_carp, old = c('ct_weightstar.mean','ct_weightstar.se', 'ct_abundancestar.mean','ct_abundancestar.se'),
+         new = c('bpue_mean','bpue_se', 'cpue_mean','cpue_se'))#rename the outputs
+#tranforming 1000m? per net
+vpue_carp[, ':='(cpue_mean = cpue_mean*1000)]
