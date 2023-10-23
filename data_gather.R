@@ -2,7 +2,7 @@ source(here::here('packages.R'))
 source(here::here('functions.R'))
 
 #Data from the database#####
-con <- dbConnect(PostgreSQL(), dbname = "fishecu_complex-survey_db", user = "fishecuuser", host = "172.21.3.20", password = "f1sh3cuus3r!")
+# con <- dbConnect(PostgreSQL(), dbname = "fishecu_complex-survey_db", user = "fishecuuser", host = "172.21.3.20", password = "f1sh3cuus3r!")
 
 #Connecting to the database to extract info about Lipno
 #Latin names
@@ -32,19 +32,19 @@ catches_db <- setDT(readxl::read_xlsx(here::here('Data', 'catches_db.xlsx')))
 #separating the target species
 catches_db <- merge(catches_db, specs[, .(sp_speciesid, sp_scientificname, sp_taxonomicorder)], by='sp_speciesid')
 catches_db <- catches_db[!sp_speciesid == 'EA']
-catches_db <- catches_db[sp_scientificname == "Cyprinus carpio"]
-catches_db <- merge(catches_db, all_gill_depl[, .(sa_samplingid, year)], by='sa_samplingid')
+catches_carp <- catches_db[sp_scientificname %in% c("Cyprinus carpio", "Silurus glanis")]
+catches_carp <- merge(catches_carp, all_gill_depl[, .(sa_samplingid, year)], by='sa_samplingid')
 
 #Vpue
-splitfactors <- c("sa_samplingid", "gg_gearid", "depthlayerid", "dl_layertype")
-cpue_carp <- getVPUE(samplings = all_gill_depl, catch = catches_db, split.factors.catch = c("sp_scientificname"), 
+splitfactors <- c("sa_samplingid", "gg_gearid", "dl_layertype")
+cpue_carp <- getVPUE(samplings = all_gill_depl, catch = catches_carp, split.factors.catch = c("sp_scientificname"), 
                 split.factors.samplings = splitfactors, value.var = "ct_abundancestar", 
                 effort.colname = "Effort", id.colname = "sa_samplingid")
-bpue_carp <- getVPUE(samplings = all_gill_depl, catch = catches_db, split.factors.catch = c("sp_scientificname"), 
+bpue_carp <- getVPUE(samplings = all_gill_depl, catch = catches_carp, split.factors.catch = c("sp_scientificname"), 
                 split.factors.samplings = splitfactors, value.var = "ct_weightstar", 
                 effort.colname = "Effort", id.colname = "sa_samplingid")
 
-vpue_carp <- merge(cpue_carp, bpue_carp, by = c("sa_samplingid", "gg_gearid", "depthlayerid", "dl_layertype"))
+vpue_carp <- merge(cpue_carp, bpue_carp, by = c("sa_samplingid", "gg_gearid", "dl_layertype", "sp_scientificname"))
 
 #changing the name of variables
 setnames(x = vpue_carp, old = c('ct_weightstar.mean','ct_weightstar.se', 'ct_abundancestar.mean','ct_abundancestar.se'),
