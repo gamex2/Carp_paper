@@ -51,3 +51,17 @@ setnames(x = vpue_carp, old = c('ct_weightstar.mean','ct_weightstar.se', 'ct_abu
          new = c('bpue_mean','bpue_se', 'cpue_mean','cpue_se'))#rename the outputs
 #tranforming 1000m? per net
 vpue_carp[, ':='(cpue_mean = cpue_mean*1000)]
+
+sum_size_carp <- catches_carp[!ct_sl == 0,.(Mean = round(mean(ct_sl, na.rm = T), 2),
+                                                     SE = round(plotrix::std.error(ct_sl), 2),
+                                                     Max = max(ct_sl),
+                                                     Min = min(ct_sl)),
+                                       by =.(sp_scientificname, year)]
+catches_carp[, ':='(ct_weight_kg = ct_weight/1000)]
+sum_weight_carp <- catches_carp[!ct_weight_kg == 0,.(Mean = round(mean(ct_weight_kg, na.rm = T), 2),
+                                            SE = round(plotrix::std.error(ct_weight_kg), 2),
+                                            Max = round(max(ct_weight_kg), 2),
+                                            Min = round(min(ct_weight_kg), 2)),
+                              by =.(sp_scientificname, year)]
+
+
