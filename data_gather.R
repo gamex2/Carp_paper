@@ -57,11 +57,26 @@ sum_size_carp <- catches_carp[!ct_sl == 0,.(Mean = round(mean(ct_sl, na.rm = T),
                                                      Max = max(ct_sl),
                                                      Min = min(ct_sl)),
                                        by =.(sp_scientificname, year)]
+sum_size_carp$year <- as.factor(sum_size_carp$year)
+# write.xlsx(sum_size_carp, here::here('Data', 'sum_size_carp.xlsx'))
+
+ggplot(sum_size_carp, aes(x = year, y = Mean)) + 
+  geom_ribbon(aes(ymin = Min, ymax = Max), fill = "grey70", alpha = 0.4) +
+  geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), colour="black", width=.1, position=position_dodge(0.1)) +
+  geom_point(position=position_dodge(0.1), size=3, shape=21, fill="white") + 
+  facet_grid(sp_scientificname ~ ., scales="free_y")+
+  xlab("Year") +
+  ylab("Size (mm)") +
+  theme_bw() +
+  theme(legend.justification=c(1,0),
+        legend.position=c(1,0))
+plot_size + geom_ribbon(aes(ymin = Min, ymax = Max), fill = "grey70")
+
 catches_carp[, ':='(ct_weight_kg = ct_weight/1000)]
 sum_weight_carp <- catches_carp[!ct_weight_kg == 0,.(Mean = round(mean(ct_weight_kg, na.rm = T), 2),
                                             SE = round(plotrix::std.error(ct_weight_kg), 2),
                                             Max = round(max(ct_weight_kg), 2),
                                             Min = round(min(ct_weight_kg), 2)),
                               by =.(sp_scientificname, year)]
-
+# write.xlsx(sum_weight_carp, here::here('Data', 'sum_weight_carp.xlsx'))
 
