@@ -55,7 +55,8 @@ vpue_carp[, ':='(cpue_mean = cpue_mean*1000)]
 sum_size_carp <- catches_carp[!ct_sl == 0,.(Mean = round(mean(ct_sl, na.rm = T), 2),
                                                      SE = round(plotrix::std.error(ct_sl), 2),
                                                      Max = max(ct_sl),
-                                                     Min = min(ct_sl)),
+                                                     Min = min(ct_sl),
+                                            Ind = sum(ct_abundance)),
                                        by =.(sp_scientificname, year)]
 sum_size_carp$year <- as.factor(sum_size_carp$year)
 # write.xlsx(sum_size_carp, here::here('Data', 'sum_size_carp.xlsx'))
@@ -70,7 +71,6 @@ ggplot(sum_size_carp, aes(x = year, y = Mean)) +
   theme_bw() +
   theme(legend.justification=c(1,0),
         legend.position=c(1,0))
-plot_size + geom_ribbon(aes(ymin = Min, ymax = Max), fill = "grey70")
 
 catches_carp[, ':='(ct_weight_kg = ct_weight/1000)]
 sum_weight_carp <- catches_carp[!ct_weight_kg == 0,.(Mean = round(mean(ct_weight_kg, na.rm = T), 2),
