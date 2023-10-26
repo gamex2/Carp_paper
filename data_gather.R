@@ -37,7 +37,7 @@ catches_carp <- merge(catches_carp, all_gill_depl[, .(sa_samplingid, year)], by=
 #write.xlsx(catches_carp, here::here('Data', 'catches_carp.xlsx'))
 
 #Vpue
-splitfactors <- c("sa_samplingid", "gg_gearid", "dl_layertype", "year")
+splitfactors <- c("gg_gearid", "dl_layertype", "year")
 cpue_carp <- getVPUE(samplings = all_gill_depl, catch = catches_carp, split.factors.catch = c("sp_scientificname"), 
                 split.factors.samplings = splitfactors, value.var = "ct_abundancestar", 
                 effort.colname = "Effort", id.colname = "sa_samplingid")
@@ -45,7 +45,7 @@ bpue_carp <- getVPUE(samplings = all_gill_depl, catch = catches_carp, split.fact
                 split.factors.samplings = splitfactors, value.var = "ct_weightstar", 
                 effort.colname = "Effort", id.colname = "sa_samplingid")
 
-vpue_carp <- merge(cpue_carp, bpue_carp, by = c("sa_samplingid", "gg_gearid", "dl_layertype", "sp_scientificname", "year"))
+vpue_carp <- merge(cpue_carp, bpue_carp, by = c("gg_gearid", "dl_layertype", "sp_scientificname", "year"))
 
 #changing the name of variables
 setnames(x = vpue_carp, old = c('ct_weightstar.mean','ct_weightstar.se', 'ct_abundancestar.mean','ct_abundancestar.se'),
@@ -54,6 +54,24 @@ setnames(x = vpue_carp, old = c('ct_weightstar.mean','ct_weightstar.se', 'ct_abu
 vpue_carp[, ':='(cpue_mean = cpue_mean*1000)]
 #write.xlsx(vpue_carp, here::here('Data', 'vpue_carp.xlsx'))
 
+#####VPUE year
+cpue_carp_year <- getVPUE(samplings = all_gill_depl, catch = catches_carp, split.factors.catch = c("sp_scientificname"), 
+                     split.factors.samplings = c("year"), value.var = "ct_abundancestar", 
+                     effort.colname = "Effort", id.colname = "sa_samplingid")
+bpue_carp_year <- getVPUE(samplings = all_gill_depl, catch = catches_carp, split.factors.catch = c("sp_scientificname"), 
+                     split.factors.samplings = c("year"), value.var = "ct_weightstar", 
+                     effort.colname = "Effort", id.colname = "sa_samplingid")
+
+vpue_carp_year <- merge(cpue_carp_year, bpue_carp_year, by = c("sp_scientificname", "year"))
+
+#changing the name of variables
+setnames(x = vpue_carp_year, old = c('ct_weightstar.mean','ct_weightstar.se', 'ct_abundancestar.mean','ct_abundancestar.se'),
+         new = c('bpue_mean','bpue_se', 'cpue_mean','cpue_se'))#rename the outputs
+#tranforming 1000m? per net
+vpue_carp_year[, ':='(cpue_mean = cpue_mean*1000)]
+#write.xlsx(vpue_carp_year, here::here('Data', 'vpue_carp_year.xlsx'))
+
+#####Means
 sum_size_carp <- catches_carp[!ct_sl == 0,.(Mean = round(mean(ct_sl, na.rm = T), 2),
                                                      SE = round(plotrix::std.error(ct_sl), 2),
                                                      Max = max(ct_sl),
