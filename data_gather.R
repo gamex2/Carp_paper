@@ -112,3 +112,4 @@ models2 <- lapply(split(catches_carpo, catches_carpo$year), 'lm', formula = logW
 #                                                                                         sp_scientificname = catches_carpo[sp_scientificname == "Cyprinus carpio"]$sp_scientificname))]
 # catches_carpo[sp_scientificname == "Cyprinus carpio"]$ct_wg_comp <- exp(catches_carpo[sp_scientificname == "Cyprinus carpio"]$ct_wg_comp) 
 # catches_carpo[sp_scientificname == "Cyprinus carpio"]$ct_wg_comp <- exp((summary(models$`Cyprinus carpio`)$sigma^2)/2) * catches_carpo[sp_scientificname == "Cyprinus carpio"]$ct_wg_comp
+
