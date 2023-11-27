@@ -12,7 +12,10 @@ VPA(whiting, terminalE = 0.5, catch_columns = 3, analysis_type = "CA",
 
 #_______________________________________________
 # Virtual population analysis with length-composition data
-data(hake)
+data(
+  
+
+  ?lkja)
 VPA(hake, terminalE = 0.5, analysis_type = "VPA", plot = TRUE,
     catch_unit = "'000", plus_group = TRUE)
 #_______________________________________________

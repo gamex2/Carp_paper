@@ -99,7 +99,12 @@ sum_weight_carp <- catches_carp[!ct_weight_kg == 0,.(Mean = round(mean(ct_weight
                                             Min = round(min(ct_weight_kg), 2)),
                               by =.(sp_scientificname, year)]
 #write.xlsx(sum_weight_carp, here::here('Data', 'sum_weight_carp.xlsx'))
-
+sum_weight_carp <- catches_carp[!ct_weight_kg == 0,.(Mean = round(mean(ct_weight_kg, na.rm = T), 2),
+                                                     SE = round(plotrix::std.error(ct_weight_kg), 2),
+                                                     Max = round(max(ct_weight_kg), 2),
+                                                     Min = round(min(ct_weight_kg), 2)),
+                                by =.(sp_scientificname, year)]
+sum_weight_carp$mid <- (sum_weight_carp$Max + sum_weight_carp$Min)/2
 #####length weight correlation
 catches_carp$logL <- log(catches_carp$ct_sl)
 catches_carp$logW <- log(catches_carp$ct_weight)
